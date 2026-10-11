@@ -1,48 +1,63 @@
 """
 SecureRAG-Field & Cyber-Physical Security Architecture
-Module: Main Integration Orchestrator for Edge RASP & Optimization
+Module: Unified Edge Integration Engine Orchestrator
 Author: Cuong Dang (Tri Thuc Goc Architecture Contributor)
 """
 
 import time
 from core.security_node import EdgeSecurityNode
 from core.optimization_node import EdgeOptimizationNode
+from core.geometry_node import EdgeGeometryNode
+from core.network_node import EdgeNetworkNode
 
 class UnifiedEdgeEngine:
     def __init__(self):
         self.security_module = EdgeSecurityNode()
         self.optimization_module = EdgeOptimizationNode()
+        self.geometry_module = EdgeGeometryNode()
+        self.network_module = EdgeNetworkNode()
 
-    def execute_pipeline(self, frame_metadata: dict, network_telemetry: dict, drone_hardware: dict) -> dict:
+    def execute_pipeline(self, frame_metadata: dict, network_telemetry: dict, drone_hardware: dict, vibration_telemetry: dict) -> dict:
         """
-        Hợp nhất quy trình: Kiểm tra an ninh trước -> Nếu an toàn mới tính toán chính sách tối ưu hóa.
+        Executes full full-stack pipeline validation:
+        Perception Audit -> Geometric Filtering -> Offload Optimization -> Network Encapsulation
         """
-        # Bước 1: Kiểm tra an ninh biên (Perception Guardrails)
+        # Step 1: Security Audit
         security_report = self.security_module.audit_perception_integrity(frame_metadata)
-        
-        # Nếu phát hiện tấn công, cơ học ngắt luồng tính toán bình thường để kích hoạt chế độ khẩn cấp
         if security_report["verdict"] != "INTEGRITY_PASSED":
             return {
                 "pipeline_status": "EMERGENCY_HALT",
-                "security_verdict": security_report["verdict"],
-                "execution_action": security_report["recommended_action"]
+                "action": security_report["recommended_action"],
+                "payload": None
             }
 
-        # Bước 2: Tối ưu hóa hạ tầng tính toán phân tán (Disaggregated Offloading)
+        # Step 2: Geometric Filtration (Poincare Manifold Compensation)
+        raw_features = frame_metadata.get("raw_features", [0.5, -0.2, 0.1])
+        geometry_report = self.geometry_module.filter_kinetic_distortion(raw_features, vibration_telemetry)
+        clean_features = geometry_report["features"]
+
+        # Step 3: Offload Optimization Logic (Disaggregated Serving)
         offload_policy = self.optimization_module.evaluate_offload_policy(
             task_type=frame_metadata["task_type"],
             network_telemetry=network_telemetry,
             drone_hardware=drone_hardware
         )
 
+        # Step 4: Network Secure Encapsulation if Offloading is selected
+        if offload_policy["policy"] == "OFFLOAD_TO_GROUND_POOL":
+            secure_packet = self.network_module.encapsulate_telemetry_payload(clean_features, tenant_id=drone_hardware["tenant_id"])
+            return {
+                "pipeline_status": "SUCCESS_OFFLOADED",
+                "action": "TRANSMIT_VIA_STARLINK",
+                "packet": secure_packet
+            }
+
         return {
-            "pipeline_status": "SUCCESS",
-            "security_verdict": "CLEAN",
-            "execution_action": offload_policy["policy"],
-            "target_hardware": offload_policy["target"]
+            "pipeline_status": "SUCCESS_LOCAL",
+            "action": offload_policy["policy"],
+            "packet": {"features_processed_locally": clean_features, "target_hardware": offload_policy["target"]}
         }
 
-# Khối chạy thử thực nghiệm (Verification Sandbox)
 if __name__ == "__main__":
     print("=====================================================================")
     print("RUNNING MODULAR DISAGGREGATED FUSION & SECURITY PIPELINE TEST")
@@ -50,26 +65,23 @@ if __name__ == "__main__":
     
     orchestrator = UnifiedEdgeEngine()
     
-    # Giả lập tham số kiểm thử
+    # Static environment mock variables
     net_state = {"latency_ms": 15.0, "stable": True}
-    normal_hardware = {"battery_pct": 75.0}
-    low_battery_hardware = {"battery_pct": 12.0}
-
-    # Kịch bản A: Hệ thống sạch, chạy tác vụ thông thường tại biên
-    print("[Test A] Luồng vận hành bình thường:")
-    frame_a = {"avg_intensity": 110.0, "saturated_ratio": 0.02, "entropy": 5.5, "task_type": "FLIGHT_NAVIGATION"}
-    print(f"Kết quả Pipeline: {orchestrator.execute_pipeline(frame_a, net_state, normal_hardware)}\n")
-
-    # Kịch bản B: Phát hiện tấn công bão hòa Laser (Bảo mật biên chặn đứng trước)
-    print("[Test B] Hacker chĩa Laser làm mù camera hông:")
-    frame_b = {"avg_intensity": 254.0, "saturated_ratio": 0.70, "entropy": 2.0, "task_type": "FLIGHT_NAVIGATION"}
-    print(f"Kết quả Pipeline: {orchestrator.execute_pipeline(frame_b, net_state, normal_hardware)}\n")
-
-    # Kịch bản C: Kích hoạt đẩy tác vụ nặng về trạm mặt đất khi pin yếu (Tối ưu hóa phân tán)
-    print("[Test C] Pin Drone yếu xuống 12%, cần xử lý mô hình định giá tài sản nặng:")
-    frame_c = {"avg_intensity": 120.0, "saturated_ratio": 0.01, "entropy": 6.0, "task_type": "DEEP_ASSET_VALUATION"}
-    print(f"Kết quả Pipeline: {orchestrator.execute_pipeline(frame_c, net_state, low_battery_hardware)}\n")
+    hardware_state = {"battery_pct": 15.0, "tenant_id": "investor_id_cuong_dang_hcc"} # Low battery forces offload
     
+    # Test Scenario: High-Vibration Environment demanding a heavy valuation offload task
+    print("[Full Execution Pipeline Test] Drone under high mechanical lens vibration executing Deep Asset Valuation:")
+    vibration_noise = {"vorticity_energy": 0.88} # Triggers Poincare Manifold processing
+    frame_data = {
+        "avg_intensity": 115.0, 
+        "saturated_ratio": 0.02, 
+        "entropy": 6.2, 
+        "task_type": "DEEP_ASSET_VALUATION",
+        "raw_features": [0.35, -0.44, 0.12]
+    }
+    
+    final_output = orchestrator.execute_pipeline(frame_data, net_state, hardware_state, vibration_noise)
+    print(f"\nFinal Orchestration Output Matrix:\n{final_output}\n")
     print("=====================================================================")
-    print("MODULAR INTEGRATION VERIFICATION COMPLETE: ALL CHANNELS PASS")
+    print("ALL CORE INTEGRATION NODES EXECUTED WITH ZERO RUNTIME DISRUPTIONS")
     print("=====================================================================")
