@@ -4,6 +4,33 @@ Module: Unified Edge Integration Engine Orchestrator
 Author: Cuong Dang (Tri Thuc Goc Architecture Contributor)
 """
 
+"""
+==============================================================================
+                    INTERNAL TRANSMISSION STEP LOGIC
+==============================================================================
+[ Raw Sensory Frame Input ] 
+             │
+             ▼
+┌────────────────────────────────────────┐
+│ 1. core/security_node.py (RASP Core)   │ ◄── [Perception Guardrails] Bắt đứng tia laser làm mù
+└────────────┬───────────────────────────┘     hoặc dòng video lặp (Replay Attack) tại lớp biên.
+             ▼ (Dữ liệu hình ảnh sạch)
+┌────────────────────────────────────────┐
+│ 2. core/geometry_node.py (Manifold)    │ ◄── [Ánh Xạ Không Gian Poincaré] Triệt tiêu cấu trúc nhiễu
+└────────────┬───────────────────────────┘     hình học và lỗi rung lắc vật lý của thấu kính camera.
+             ▼ (Vectơ đặc trưng bất biến)
+┌────────────────────────────────────────┐
+│ 3. core/optimization_node.py (Serving) │ ◄── [Tối Ưu Hóa Phân Tán] Phân chia tác vụ né vật cản tại biên
+└────────────┬───────────────────────────┘     hoặc đẩy mô hình nặng về Shared GPU Pool để cứu pin.
+             ▼ (Định hướng truyền gói tin)
+┌────────────────────────────────────────┐
+│ 4. core/network_node.py (Encryption)   │ ◄── [Bảo Mật Đường Ống Dữ Liệu] Ký số HMAC-SHA256 lên các mảnh
+└────────────────────────────────────────┘     tọa độ trước khi stream qua sóng vệ tinh/Starlink.
+==============================================================================
+"""
+
+
+
 import time
 from core.security_node import EdgeSecurityNode
 from core.optimization_node import EdgeOptimizationNode
